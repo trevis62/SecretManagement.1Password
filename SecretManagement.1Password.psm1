@@ -44,20 +44,18 @@ function Get-SecretInfo {
     $keyList = [Collections.ArrayList]::new()
 
     foreach ($item in $items) {
-            Write-Verbose $item.title
+        Write-Verbose $item.title
 
-            $type = switch ($item.category) {
-                'LOGIN' { [SecretType]::PSCredential }
-                'PASSWORD' { [SecretType]::SecureString }
-                Default { [SecretType]::Unknown }
-            }
-
-            [SecretInformation]::new(
-                Name = $item.title,
-                Type = $type,
-                Vault = $VaultName
-            )
+        $type = switch ($item.category) {
+            'LOGIN' { [SecretType]::PSCredential }
+            'PASSWORD' { [SecretType]::SecureString }
+            Default { [SecretType]::Unknown }
         }
+
+        $si = [SecretInformation]::new()
+        $si.Name = $item.title
+        $si.Type = $type
+        $si.Vault = $VaultName
     }
 }
 
