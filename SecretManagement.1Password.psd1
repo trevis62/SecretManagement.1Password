@@ -12,21 +12,21 @@
     # RootModule = ''
 
     # Version number of this module.
-    ModuleVersion     = '0.0.4.6'
+    ModuleVersion     = '0.0.5.0'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
 
     # ID used to uniquely identify this module
-    GUID              = '4c9df238-a61e-4398-9d30-aaaa67273193'
+    GUID              = 'd45c8a5c-5e8d-4c66-a92d-41fbb69a3e58'
 
     # Author of this module
-    Author            = 'Chris Hunt'
+    Author            = 'Frode Sivertsen - Based on work done by Chris Hunt'
 
     # Company or vendor of this module
 
     # Copyright statement for this module
-    Copyright         = '(c) Chris Hunt. All rights reserved.'
+    Copyright         = ''
 
     # Description of the functionality provided by this module
     Description       = 'SecretManagement extension for 1Password'
@@ -65,7 +65,7 @@
     # FormatsToProcess = @()
 
     # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
-    NestedModules     = './SecretManagement.1Password.Extension'
+    NestedModules     = ''
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport = @()
