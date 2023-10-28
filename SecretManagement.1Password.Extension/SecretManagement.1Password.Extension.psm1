@@ -238,6 +238,11 @@ function Remove-Secret {
         [hashtable] $AdditionalParameters
     )
 
-    throw "Not implemented yet!"
+    Write-Host "AdditionalParameters: $($AdditionalParameters.ToString())"
+
+    # Usage:  op item delete [{ <itemName> | <itemID> | <shareLink> | - }] [flags]
+
+    & op item delete $Name --vault $VaultName   # --archive
+    
 }
 
