@@ -130,7 +130,7 @@ class CommandBuilder {
             $this.password = ConvertFrom-SecureString -SecureString $secret.Password -AsPlainText
         }
         else {
-            throw ("Secret is unkown type {0}. It must be [string], [SecureString] or [PSCredential]" -f $secret.GetType().Name)
+            throw "Unsupported secret type $($secret.GetType().Name). Supported types are [string], [SecureString] and [PSCredential]"
         }
 
 
@@ -158,7 +158,6 @@ class CommandBuilder {
 class CreateCommandBuilder : CommandBuilder {
 
     hidden $template
-    hidden [string] $data
 
     # op item template get Login | op item create --vault personal -
 
@@ -172,7 +171,7 @@ class CreateCommandBuilder : CommandBuilder {
             if ($_.id -eq 'password') { $_.value = $this.password }
         }
         
-        $templ.title = $title
+        $templ.title = $title # had to use a local $templ variable, otherwise it fails saying title does not exist.
 
         $this.template = $templ
 	}
@@ -237,8 +236,6 @@ function Remove-Secret {
         [Parameter()]
         [hashtable] $AdditionalParameters
     )
-
-    Write-Host "AdditionalParameters: $($AdditionalParameters.ToString())"
 
     # Usage:  op item delete [{ <itemName> | <itemID> | <shareLink> | - }] [flags]
 
