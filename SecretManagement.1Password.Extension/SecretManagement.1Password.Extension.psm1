@@ -34,7 +34,7 @@ function Get-SecretInfo {
 
     $json = & op --format json items list  --categories Login,Password --vault $VaultName
 
-    $items = ConvertFrom-Json -InputObject $json
+    $items = $json | ConvertFrom-Json
 
     if (-Not [string]::IsNullOrEmpty($Filter))
     {
@@ -52,10 +52,9 @@ function Get-SecretInfo {
             Default { [SecretType]::Unknown }
         }
 
-        $si = [SecretInformation]::new()
-        $si.Name = $item.title
-        $si.Type = $type
-        $si.Vault = $VaultName
+        $si = [SecretInformation]::new($item.title, $type, $VaultName)
+    
+        $si
     }
 }
 
