@@ -13,6 +13,8 @@ to interact with 1Password.
 * The [`1password-cli`](https://support.1password.com/command-line/) and accessible from Path
 * The [SecretManagement](https://github.com/PowerShell/SecretManagement) PowerShell module
 
+I have only tested and used this with 1Password 8 on Windows and the newest version of the 1Password CLI.
+
 You can get the `SecretManagement` module from the PowerShell Gallery:
 
 Using PowerShellGet v2:
