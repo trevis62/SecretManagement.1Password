@@ -29,7 +29,7 @@ Install-PSResource Microsoft.PowerShell.SecretManagement -Prerelease
 ## Installation
 
 I have updated this module to work for my needs. The parent had not been updated to support the new version of the 1Password CLI. With 1Password8 and the new version of the CLI, everything has become simpler.
-The CLI can now share authentication state with the 1Password app. Just make sure to check the "Integrate with the 1Password CLI" in the developer section of settings.
+The CLI can now share authentication state with the 1Password app. Just make sure to check the "Integrate with the 1Password CLI" in the developer section of settings in the 1Password app.
 
 You have to install this manually for now by cloning the repository. Just copy the .psd1 and .psm1 files into a folder in your module path.
 I'll try to find time to write something up and eventually automate the install or maybe a pull request back to parent if he is interested.
