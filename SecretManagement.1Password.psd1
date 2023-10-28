@@ -13,7 +13,7 @@
     GUID              = 'd45c8a5c-5e8d-4c66-a92d-41fbb69a3e58'
 
     # Author of this module
-    Author            = 'Frode Sivertsen'
+    Author            = 'Frode Sivertsen, based on work by https://github.com/cdhunt'
 
     # Company or vendor of this module
 
