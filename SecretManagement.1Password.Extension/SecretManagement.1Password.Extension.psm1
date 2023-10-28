@@ -99,6 +99,115 @@ function Get-Secret {
     [PSCredential]::new($username, $secureStringPassword)
 }
 
+class CommandArgumentBuilder {
+
+    # examples
+    # op item create --category=login --title='My Example Item' username=jane.doe@acme.com password=secret
+    # op item edit 'My Example Item' --vault='Test' username=jane.doe@acme.com
+    # op item template get Login | op item create --vault personal -
+
+    hidden $commandArgs = [Collections.ArrayList]::new()
+    hidden [string] $category
+    hidden [string] $username
+    hidden [string] $password
+
+	# [bool] $UseNumbers = $false
+
+	CommandArgumentBuilder([object] $secret, [string] $vault) {
+
+        $this.commandArgs.Add('--vault')
+        $this.commandArgs.Add($vault)
+
+        $this.commandArgs.Add('item') | Out-Null
+
+        if ($secret -is [string]) {
+            $this.category = "password"
+            $this.password = $secret
+        }
+        elseif ($secret -is [SecureString]) {
+            $this.category = "password"
+            $this.password = ConvertFrom-SecureString -SecureString $secret -AsPlainText
+        }
+        elseif ($Secret -is [PSCredential]) {
+            $this.category = "login"
+            $this.username = $secret.UserName
+            $this.password = ConvertFrom-SecureString -SecureString $secret.Password -AsPlainText
+        }
+        else {
+            throw ("Secret is unkown type {0}. It must be [string], [SecureString] or [PSCredential]" -f $secret.GetType().Name)
+        }
+
+
+	}
+
+    [int] Execute() {
+        #& op @($this.commandArgs)
+        @($this.commandArgs)
+
+        return $?
+    }
+
+	static [CommandArgumentBuilder] Create($item) {
+
+
+		if ($item) {
+    		return [EditCommandArgumentBuilder]::new($item)
+        }
+
+		return [CreateCommandArgumentBuilder]::new()
+	}
+}
+
+class CreateCommandArgumentBuilder : CommandArgumentBuilder {
+
+    hidden [string] $template
+    hidden [string] $data
+
+    # op item template get Login | op item create --vault personal -
+
+	CreateCommandArgumentBuilder() : base() {
+        $commandArgs.Add('create') | Out-Null
+
+        $this.template = & op item template get $this.category | ConvertFrom-Json
+
+        $this.template.fields | ForEach-Object {
+            if ($_.id -eq 'username') { $_.value = $this.username }
+            if ($_.id -eq 'password') { $_.value = $this.password }
+        }
+
+        $this.template.title = $this.username
+	}
+
+    # override
+    [int] Execute() {
+        #$this.template | & op @($this.commandArgs) -
+        $this.template
+        @($this.commandArgs)
+
+        return $?
+    }
+}
+
+class EditCommandArgumentBuilder : CommandArgumentBuilder {
+
+    # op item edit 'My Example Item' --vault='Test' username=jane.doe@acme.com
+
+	CreateCommandArgumentBuilder($item) : base() {
+        $commandArgs.Add('edit') | Out-Null
+
+        $this.commandArgs.Add($item) | Out-Null
+
+        if ($this.category -ieq 'login') {
+            $this.commandArgs.Add("username=$($this.username)") | Out-Null
+        }
+
+        $this.commandArgs.Add("password=$($this.password)") | Out-Null
+
+	}
+
+}
+
+
 function Set-Secret {
     [CmdletBinding()]
     param (
@@ -112,7 +221,12 @@ function Set-Secret {
         [hashtable] $AdditionalParameters
     )
 
-    throw "Not implemented yet!"
+
+    $item = & op item get $Name --fields title --vault $VaultName 2>$null
+
+    $command = [CommandArgumentBuilder]::Create($item)
+
+    return $command.Execute()
 
 }
 
