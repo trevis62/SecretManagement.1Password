@@ -41,8 +41,6 @@ function Get-SecretInfo {
         $items = $items | Where-Object title -like $Filter
     }
 
-    $keyList = [Collections.ArrayList]::new()
-
     foreach ($item in $items) {
         Write-Verbose $item.title
 
@@ -74,8 +72,6 @@ function Get-Secret {
     $item = & op --format json item get $Name --fields label=username,label=password --vault $VaultName | ConvertFrom-Json
 
 
-    $output = $null
-
     # item[0] is username
     Write-Verbose $item[0]
     
@@ -99,7 +95,7 @@ function Get-Secret {
     [PSCredential]::new($username, $secureStringPassword)
 }
 
-class CommandArgumentBuilder {
+class CommandBuilder {
 
     # examples
     # op item create --category=login --title='My Example Item' username=jane.doe@acme.com password=secret
@@ -113,7 +109,7 @@ class CommandArgumentBuilder {
 
 	# [bool] $UseNumbers = $false
 
-	CommandArgumentBuilder([object] $secret, [string] $vault) {
+	CommandBuilder([object] $secret, [string] $vault) {
 
         $this.commandArgs.Add('--vault')
         $this.commandArgs.Add($vault)
@@ -141,61 +137,63 @@ class CommandArgumentBuilder {
 	}
 
     [int] Execute() {
-        #& op @($this.commandArgs)
-        @($this.commandArgs)
+        # Write-Host @($this.commandArgs)
+
+        & op @($this.commandArgs)
 
         return $?
     }
 
-	static [CommandArgumentBuilder] Create($item) {
+	static [CommandBuilder] Create($title, $secret, $vault, $item) {
 
 
 		if ($item) {
-    		return [EditCommandArgumentBuilder]::new($item)
+    		return [EditCommandBuilder]::new($secret, $vault, $item)
         }
 
-		return [CreateCommandArgumentBuilder]::new()
+		return [CreateCommandBuilder]::new($title, $secret, $vault)
 	}
 }
 
-class CreateCommandArgumentBuilder : CommandArgumentBuilder {
+class CreateCommandBuilder : CommandBuilder {
 
-    hidden [string] $template
+    hidden $template
     hidden [string] $data
 
     # op item template get Login | op item create --vault personal -
 
-	CreateCommandArgumentBuilder() : base() {
-        $commandArgs.Add('create') | Out-Null
+	CreateCommandBuilder($title, $secret, $vault) : base($secret, $vault) {
+        $this.commandArgs.Add('create') | Out-Null
 
-        $this.template = & op item template get $this.category | ConvertFrom-Json
+        $templ = & op item template get $this.category | ConvertFrom-Json
 
-        $this.template.fields | ForEach-Object {
+        $templ.fields | ForEach-Object {
             if ($_.id -eq 'username') { $_.value = $this.username }
             if ($_.id -eq 'password') { $_.value = $this.password }
         }
+        
+        $templ.title = $title
 
-        $this.template.title = $this.username
+        $this.template = $templ
 	}
 
     # override
     [int] Execute() {
-        #$this.template | & op @($this.commandArgs) -
-        $this.template
-        @($this.commandArgs)
+
+        $this.template | ConvertTo-Json -Depth 4 | & op @($this.commandArgs) -
 
         return $?
     }
 }
 
-class EditCommandArgumentBuilder : CommandArgumentBuilder {
+class EditCommandBuilder : CommandBuilder {
 
     # op item edit 'My Example Item' --vault='Test' username=jane.doe@acme.com
 
-	CreateCommandArgumentBuilder($item) : base() {
-        $commandArgs.Add('edit') | Out-Null
+	EditCommandBuilder($secret, $vault, $item) : base($secret, $vault) {
+        $this.commandArgs.Add('edit') | Out-Null
 
-        $this.commandArgs.Add($item) | Out-Null
+        $this.commandArgs.Add($item.title) | Out-Null
 
         if ($this.category -ieq 'login') {
             $this.commandArgs.Add("username=$($this.username)") | Out-Null
@@ -221,10 +219,9 @@ function Set-Secret {
         [hashtable] $AdditionalParameters
     )
 
+    $item = & op item get $Name --vault $VaultName --format json 2>$null | ConvertFrom-Json
 
-    $item = & op item get $Name --fields title --vault $VaultName 2>$null
-
-    $command = [CommandArgumentBuilder]::Create($item)
+    $command = [CommandBuilder]::Create($Name, $Secret, $VaultName, $item)
 
     return $command.Execute()
 
@@ -243,3 +240,4 @@ function Remove-Secret {
 
     throw "Not implemented yet!"
 }
+
