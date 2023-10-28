@@ -28,19 +28,11 @@ Install-PSResource Microsoft.PowerShell.SecretManagement -Prerelease
 ```
 ## Installation
 
-You an install this module from the PowerShell Gallery:
+I have updated this module to work for my needs. The parent had not been updated to support the new version of the 1Password CLI. With 1Password8 and the new version of the CLI, everything has become simpler.
+The CLI can now share authentication state with the 1Password app. Just make sure to check the "Integrate with the 1Password CLI" in the developer section of settings.
 
-Using PowerShellGet v2:
-
-```pwsh
-Install-Module SecretManagement.1Password
-```
-
-Using PowerShellGet v3:
-
-```pwsh
-Install-PSResource SecretManagement.1Password
-```
+You have to install this manually for now by cloning the repository. Just copy the .psd1 and .psm1 files into a folder in your module path.
+I'll try to find time to write something up and eventually automate the install or maybe a pull request back to parent if he is interested.
 
 ## Registration
 
@@ -48,31 +40,13 @@ Once you have it installed,
 you need to register the module as an extension:
 
 ```pwsh
-Register-SecretVault -Name vaultname -ModuleName SecretManagement.1Password -VaultParameters @{AccountName = 'myaccountname'; EmailAddress = 'user@youremail.com'; SecretKey = 'secretkey-for-your-account'}
+Register-SecretVault -Name vaultname -ModuleName SecretManagement.1Password
 ```
 
-**Note**: The name you provide the `Name` parameter needs to match an existing vault in 1Password.
+**Note**: The name you provide the `Name` parameter needs to match an existing vault in 1Password. E.g. Private.
 If you want to access more than oen 1Password vault you need to register them separately with `Register-SecretVault`
 
 
 ### Vault parameters
 
-The module also has the following vault parameter that must be provided at registration.
-
-#### AccountName
-
-Your 1Password account name.
-
-```
-https://myaccountname.1password.com/
-        ^^^^^^^^^^^^^
-```
-
-#### EmailAddress
-
-The email address you use to log into 1Password.
-
-#### SecretKey
-
-The SecretKey for your 1Password vault.
-[Find your Secret Key or Setup Code](https://support.1password.com/secret-key/)
+There is no need for the additional parameters since we share the authentication state with the 1Password app.
